@@ -121,9 +121,16 @@ public class GoatsController : ControllerBase
         var safeIdForLogging = id?.Replace("\r", string.Empty).Replace("\n", string.Empty);
         _logger.LogInformation($"GetCustomers called with id {safeIdForLogging}");
 
+        // Validate and parse the id before using it in the query
+        if (!int.TryParse(id, out var customerId))
+        {
+            yield break;
+        }
+
         connection.Open();
 
-        using var command = new SqlCommand($"SELECT * FROM Customers WHERE Id={id}", connection);
+        using var command = new SqlCommand("SELECT * FROM Customers WHERE Id=@Id", connection);
+        command.Parameters.AddWithValue("@Id", customerId);
 
         using var reader = command.ExecuteReader();
         while (reader.Read())
